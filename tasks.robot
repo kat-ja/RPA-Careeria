@@ -11,7 +11,9 @@ Library         parse_date.py
 Library         parse_time.py
 Library         get_attachment_names.py
 Library         msg_to_send.py
+
 Library         RPA.Excel.Files
+
 Library         RPA.Browser.Selenium
 Library         RPA.Dialogs
 Resource        dialog.robot
@@ -22,6 +24,10 @@ Task Setup      Dialog For Credentials
 ${ACCOUNT}    ${EMPTY}   
 ${PASSWORD}    ${EMPTY}   
 ${hoks}=    other
+${RECIPIENT_ADDRESS}    katja.valanne@gmail.com
+${OPETTAJA}    Katja Valanne
+
+
 
 
 
@@ -40,6 +46,8 @@ Dialog For Credentials
     ${PASSWORD}=    Set Variable    ${response}[password]
     Authorize    username=${ACCOUNT}    password=${PASSWORD}
     #[Return]    ${ACCOUNT}    ${PASSWORD}
+
+
 
 *** Tasks ***
 Mail Messages From Specific Sender To Table
@@ -66,7 +74,7 @@ Mail Messages From Specific Sender To Table
     
     FOR    ${msg}    IN    @{messages}
         #Log    ${msg}
-        ${match}=    Get Regexp Matches    ${msg}[sender][name]    Katja Valanne 
+        ${match}=    Get Regexp Matches    ${msg}[sender][name]    ${OPETTAJA}   #Katja Valanne 
         ${match_HOPS}=    Get Regexp Matches    ${msg}[subject]    HOPS|HOKS
         ${match_len}=    Get Length    ${match}
         ${match_HOPS_len}=    Get Length    ${match_HOPS}
@@ -131,7 +139,7 @@ Mail Messages From Specific Sender To Table
 
     Log    ${hoks_list}
 
-    ${msg_to_send}=    Msg To Send    ${table}    ${hoks_count}    ${hoks_list}    ${other_list}
+    ${msg_to_send}=    Msg To Send    ${table}    ${hoks_count}    ${hoks_list}    ${other_list}    ${opettaja}
     Log    ${msg_to_send}
 
     #${type} =    Evaluate    type($table).__name__
@@ -140,3 +148,9 @@ Mail Messages From Specific Sender To Table
     Create Workbook    mails.xlsx
     Append Rows To Worksheet    ${table}    header=True
     Save Workbook
+
+    Send Message  recipients=${RECIPIENT_ADDRESS}
+    ...           subject=RPA-lopputyö: ${OPETTAJA}
+    ...           body=${msg_to_send}
+    ...           save=${TRUE}
+    ...           html=${TRUE}
